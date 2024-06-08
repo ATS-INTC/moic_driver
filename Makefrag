@@ -1,0 +1,29 @@
+DRIVER_DIR = $(PROJ_DIR)/moic_driver
+TEST_DIR = $(PROJ_DIR)/moic_driver/tests
+TEST := 
+LOG := info
+TARGET_DIR = target/riscv64gc-unknown-none-elf
+MODE := release
+QEMU_NET := -device virtio-net-device,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5555-:5555,hostfwd=udp::5555-:5555 -object filter-dump,id=net0,netdev=net0,file=dump.cap
+
+
+ELF := $(DRIVER_DIR)/$(TARGET_DIR)/$(MODE)/tests
+ASM := $(DRIVER_DIR)/$(TARGET_DIR)/$(MODE)/tests.asm
+BIN := $(DRIVER_DIR)/$(TARGET_DIR)/$(MODE)/tests.bin
+
+OBJDUMP := rust-objdump --arch-name=riscv64
+OBJCOPY := rust-objcopy --binary-architecture=riscv64
+
+driver_test_build:
+ifdef TEST
+	cd $(TEST_DIR) && LOG=$(LOG) cargo build --$(MODE) --features $(TEST)
+else
+	cd $(TEST_DIR) && LOG=$(LOG) cargo build --$(MODE)
+endif
+	$(OBJCOPY) $(ELF) --strip-all -O binary $(BIN)
+
+driver_test: driver_test_build
+	$(QEMU) -m 128M -machine virt --nographic -bios default --kernel $(BIN) $(QEMU_NET)
+
+clean_driver_test:
+	rm -rf $(DRIVER_DIR)/target
