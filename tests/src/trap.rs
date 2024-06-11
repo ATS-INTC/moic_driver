@@ -8,7 +8,7 @@ use riscv::register::{
 
 #[repr(C)]
 #[derive(Debug)]
-struct TrapContext {
+pub struct TrapContext {
     pub x: [usize; 32],
     pub sstatus: Sstatus,
     pub sepc: usize,

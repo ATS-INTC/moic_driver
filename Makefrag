@@ -5,7 +5,7 @@ LOG := info
 TARGET_DIR = target/riscv64gc-unknown-none-elf
 MODE := release
 QEMU_NET := -device virtio-net-device,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5555-:5555,hostfwd=udp::5555-:5555 -object filter-dump,id=net0,netdev=net0,file=dump.cap
-
+QEMU_LOG := -D qemu.log -d in_asm,int
 
 ELF := $(DRIVER_DIR)/$(TARGET_DIR)/$(MODE)/tests
 ASM := $(DRIVER_DIR)/$(TARGET_DIR)/$(MODE)/tests.asm
@@ -21,6 +21,7 @@ else
 	cd $(TEST_DIR) && LOG=$(LOG) cargo build --$(MODE)
 endif
 	$(OBJCOPY) $(ELF) --strip-all -O binary $(BIN)
+	$(OBJDUMP) -S -t $(ELF) > $(ASM)
 
 driver_test: driver_test_build
 	$(QEMU) -m 128M -machine virt --nographic -bios default --kernel $(BIN) $(QEMU_NET)
