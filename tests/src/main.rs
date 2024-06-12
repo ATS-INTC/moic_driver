@@ -11,6 +11,7 @@ mod console;
 mod mem;
 mod trap;
 mod user;
+mod task;
 
 #[boot::riscv_entry(boot_stack: 0x8000)]
 fn main(_hart_id: usize) {
@@ -19,13 +20,13 @@ fn main(_hart_id: usize) {
     trap::init();
     log::info!("hello");
     unsafe { 
-        // ucsr_test(); 
-        user_interrupt_test();
+        task::switch_test();
     }
     unreachable!();
 }
 
 use riscv::register::*;
+#[allow(unused)]
 unsafe fn ucsr_test() {
     log::info!("ustatus {:?}", ustatus::read());
     ustatus::set_uie();
@@ -65,6 +66,7 @@ unsafe fn ucsr_test() {
     log::info!("uip {:X?}", uip::read());
 }
 
+#[allow(unused)]
 unsafe fn user_interrupt_test() {
     sideleg::set_usoft();
     ustatus::set_uie();
