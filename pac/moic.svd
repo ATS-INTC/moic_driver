@@ -55,7 +55,7 @@
             <name>switch_process</name>
             <description>Switch process.</description>
             <addressOffset>0x10</addressOffset>
-            <access>read-only</access>
+            <access>read-write</access>
             <dataType>uint64_t</dataType>
           </register>
 
@@ -63,7 +63,7 @@
             <name>switch_os</name>
             <description>Switch os.</description>
             <addressOffset>0x18</addressOffset>
-            <access>read-only</access>
+            <access>read-write</access>
             <dataType>uint64_t</dataType>
           </register>
 

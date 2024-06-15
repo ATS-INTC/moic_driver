@@ -113,13 +113,13 @@ module"]
 pub type Fetch = crate::Reg<fetch::FetchSpec>;
 #[doc = "Fetch a task from the priority queue."]
 pub mod fetch;
-#[doc = "switch_process (r) register accessor: Switch process.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`switch_process::R`].  See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@switch_process`]
+#[doc = "switch_process (rw) register accessor: Switch process.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`switch_process::R`].  You can [`reset`](crate::generic::Reg::reset), [`write`](crate::generic::Reg::write), [`write_with_zero`](crate::generic::Reg::write_with_zero) this register using [`switch_process::W`]. You can also [`modify`](crate::generic::Reg::modify) this register. See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@switch_process`]
 module"]
 #[doc(alias = "switch_process")]
 pub type SwitchProcess = crate::Reg<switch_process::SwitchProcessSpec>;
 #[doc = "Switch process."]
 pub mod switch_process;
-#[doc = "switch_os (r) register accessor: Switch os.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`switch_os::R`].  See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@switch_os`]
+#[doc = "switch_os (rw) register accessor: Switch os.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`switch_os::R`].  You can [`reset`](crate::generic::Reg::reset), [`write`](crate::generic::Reg::write), [`write_with_zero`](crate::generic::Reg::write_with_zero) this register using [`switch_os::W`]. You can also [`modify`](crate::generic::Reg::modify) this register. See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@switch_os`]
 module"]
 #[doc(alias = "switch_os")]
 pub type SwitchOs = crate::Reg<switch_os::SwitchOsSpec>;

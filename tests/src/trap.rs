@@ -1,7 +1,6 @@
-
 use riscv::register::{
     mtvec::TrapMode,
-    scause, sie, sepc,
+    scause, sepc, sie,
     sstatus::{self, Sstatus},
     stval, stvec,
 };
@@ -13,7 +12,6 @@ pub struct TrapContext {
     pub sstatus: Sstatus,
     pub sepc: usize,
 }
-
 
 pub fn init() {
     unsafe {
@@ -46,11 +44,10 @@ fn trap_handler(cx: &mut TrapContext) -> &mut TrapContext {
     cx
 }
 
-
 #[naked]
 unsafe extern "C" fn __alltraps() {
     core::arch::asm!(
-r"
+        r"
 .altmacro
 .macro SAVE_GP n
     sd x\n, \n*8(sp)
@@ -94,6 +91,6 @@ r"
     addi sp, sp, 34*8
     csrr sp, sscratch
     sret",
-    options(noreturn)
+        options(noreturn)
     )
 }

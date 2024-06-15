@@ -1,4 +1,3 @@
-
 use core::fmt::{self, Write};
 use log::{Level, LevelFilter, Log, Metadata, Record};
 use spin::Mutex;

@@ -14,23 +14,13 @@ extern "C" {}
 #[doc(hidden)]
 #[repr(C)]
 pub union Vector {
-    _handler: unsafe extern "C" fn(),
-    _reserved: u32,
+    pub _handler: unsafe extern "C" fn(),
+    pub _reserved: usize,
 }
 #[cfg(feature = "rt")]
 #[doc(hidden)]
-#[link_section = ".vector_table.interrupts"]
 #[no_mangle]
-pub static __INTERRUPTS: [Vector; 0] = [];
-#[doc = r"Enumeration of all the interrupts."]
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum Interrupt {}
-unsafe impl cortex_m::interrupt::InterruptNumber for Interrupt {
-    #[inline(always)]
-    fn number(self) -> u16 {
-        match self {}
-    }
-}
+pub static __EXTERNAL_INTERRUPTS: [Vector; 0] = [];
 #[doc = "Multiple-object-interaction interrupt controller description."]
 pub struct Moic {
     _marker: PhantomData<*const ()>,

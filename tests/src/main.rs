@@ -3,15 +3,13 @@
 #![feature(asm_const)]
 #![feature(panic_info_message)]
 #![feature(alloc_error_handler)]
-
-
 #![no_main]
 
 mod console;
 mod mem;
+mod task;
 mod trap;
 mod user;
-mod task;
 
 #[boot::riscv_entry(boot_stack: 0x8000)]
 fn main(_hart_id: usize) {
@@ -19,7 +17,7 @@ fn main(_hart_id: usize) {
     mem::init_heap();
     trap::init();
     log::info!("hello");
-    unsafe { 
+    unsafe {
         task::switch_test();
     }
     unreachable!();
@@ -38,7 +36,7 @@ unsafe fn ucsr_test() {
     log::info!("uscratch {:#X?}", uscratch::read());
     log::info!("uepc {:#X?}", uepc::read());
     uepc::write(0x19990109);
-    log::info!("uepc {:#X?}", uepc::read());    
+    log::info!("uepc {:#X?}", uepc::read());
     log::info!("ucause {:X?}", ucause::read());
     ucause::write(0x19990109);
     log::info!("ucause {:X?}", ucause::read());
@@ -50,7 +48,7 @@ unsafe fn ucsr_test() {
     sideleg::set_usoft();
     sideleg::set_uext();
     log::info!("sideleg {:X?}", sideleg::read());
-    
+
     log::info!("uie {:X?}", uie::read());
     uie::set_usoft();
     uie::set_uext();
@@ -85,7 +83,7 @@ fn moic_test() {
     let register_recv_target_task = 0x1000038usize as *mut usize;
 
     let fetch_ptr = 0x1000008usize as *mut usize;
-    unsafe { 
+    unsafe {
         add_ptr.write_volatile(0x300);
         log::info!("{:#X}", fetch_ptr.read_volatile());
         log::info!("{:#X}", fetch_ptr.read_volatile());
@@ -111,7 +109,7 @@ fn moic_test() {
     let register_send_target_os = 0x1000048usize as *mut usize;
     let register_send_target_proc = 0x1000050usize as *mut usize;
     let register_send_target_task = 0x1000058usize as *mut usize;
-    unsafe { 
+    unsafe {
         register_send_task.write_volatile(0);
         register_send_target_os.write_volatile(0);
         register_send_target_proc.write_volatile(0);
@@ -130,5 +128,3 @@ fn moic_test() {
         register_send_target_task.write_volatile(4);
     }
 }
-
-

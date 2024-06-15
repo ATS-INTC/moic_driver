@@ -1,4 +1,3 @@
-
 use buddy_system_allocator::LockedHeap;
 
 const HEAP_SIZE: usize = 0x400_0000;
