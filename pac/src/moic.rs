@@ -4,7 +4,7 @@ pub struct RegisterBlock {
     harts: (),
 }
 impl RegisterBlock {
-    #[doc = "0x00..0x8000 - Related registers of one hart"]
+    #[doc = "0x00..0xa000 - Related registers of one hart"]
     #[inline(always)]
     pub const fn harts(&self, n: usize) -> &Hart {
         #[allow(clippy::no_effect)]
@@ -18,7 +18,7 @@ impl RegisterBlock {
         }
     }
     #[doc = "Iterator for array of:"]
-    #[doc = "0x00..0x8000 - Related registers of one hart"]
+    #[doc = "0x00..0xa000 - Related registers of one hart"]
     #[inline(always)]
     pub fn harts_iter(&self) -> impl Iterator<Item = &Hart> {
         (0..256).map(move |n| unsafe {

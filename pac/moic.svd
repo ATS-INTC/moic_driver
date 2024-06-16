@@ -162,6 +162,38 @@
             <access>read-write</access>
             <dataType>uint64_t</dataType>
           </register>
+
+          <register>
+            <name>current</name>
+            <description>Get the current task.</description>
+            <addressOffset>0x80</addressOffset>
+            <access>read-only</access>
+            <dataType>uint64_t</dataType>
+          </register>
+
+          <register>
+            <name>remove</name>
+            <description>Remove the specific task.</description>
+            <addressOffset>0x88</addressOffset>
+            <access>read-write</access>
+            <dataType>uint64_t</dataType>
+          </register>
+
+          <register>
+            <name>cause</name>
+            <description>Record the cause of interrupt.</description>
+            <addressOffset>0x90</addressOffset>
+            <access>read-only</access>
+            <dataType>uint64_t</dataType>
+          </register>
+
+          <register>
+            <name>dump</name>
+            <description>Dump the information on the specific position.</description>
+            <addressOffset>0x98</addressOffset>
+            <access>read-write</access>
+            <dataType>uint64_t</dataType>
+          </register>
                     
         </cluster>
       </registers>

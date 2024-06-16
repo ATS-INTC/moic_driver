@@ -29,8 +29,7 @@ impl Moic {
 
     /// Add a task
     pub fn add(&self, task_id: TaskId) {
-        let current_ptr = 0x1000080 as *mut usize;
-        let raw_current_ptr = unsafe { current_ptr.read_volatile() };
+        let raw_current_ptr = self.regs().current().read().bits();
         let current = unsafe { &mut *((raw_current_ptr & (!0x3f)) as *mut TaskControlBlock) };
         current.ready_queue.inner.reserve(1);
         self.regs().add().write(|w| unsafe { w.bits(task_id.as_ptr() as _) });

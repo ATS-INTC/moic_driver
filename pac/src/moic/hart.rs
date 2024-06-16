@@ -18,6 +18,10 @@ pub struct Hart {
     send_intr_proc: SendIntrProc,
     send_intr_task: SendIntrTask,
     switch_hypervisor: SwitchHypervisor,
+    current: Current,
+    remove: Remove,
+    cause: Cause,
+    dump: Dump,
 }
 impl Hart {
     #[doc = "0x00..0x08 - Add task into the priority queue."]
@@ -99,6 +103,26 @@ impl Hart {
     #[inline(always)]
     pub const fn switch_hypervisor(&self) -> &SwitchHypervisor {
         &self.switch_hypervisor
+    }
+    #[doc = "0x80..0x88 - Get the current task."]
+    #[inline(always)]
+    pub const fn current(&self) -> &Current {
+        &self.current
+    }
+    #[doc = "0x88..0x90 - Remove the specific task."]
+    #[inline(always)]
+    pub const fn remove(&self) -> &Remove {
+        &self.remove
+    }
+    #[doc = "0x90..0x98 - Record the cause of interrupt."]
+    #[inline(always)]
+    pub const fn cause(&self) -> &Cause {
+        &self.cause
+    }
+    #[doc = "0x98..0xa0 - Dump the information on the specific position."]
+    #[inline(always)]
+    pub const fn dump(&self) -> &Dump {
+        &self.dump
     }
 }
 #[doc = "add (w) register accessor: Add task into the priority queue.\n\nYou can [`reset`](crate::generic::Reg::reset), [`write`](crate::generic::Reg::write), [`write_with_zero`](crate::generic::Reg::write_with_zero) this register using [`add::W`]. See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@add`]
@@ -197,3 +221,27 @@ module"]
 pub type SwitchHypervisor = crate::Reg<switch_hypervisor::SwitchHypervisorSpec>;
 #[doc = "Switch the the hypervisor."]
 pub mod switch_hypervisor;
+#[doc = "current (r) register accessor: Get the current task.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`current::R`].  See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@current`]
+module"]
+#[doc(alias = "current")]
+pub type Current = crate::Reg<current::CurrentSpec>;
+#[doc = "Get the current task."]
+pub mod current;
+#[doc = "remove (rw) register accessor: Remove the specific task.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`remove::R`].  You can [`reset`](crate::generic::Reg::reset), [`write`](crate::generic::Reg::write), [`write_with_zero`](crate::generic::Reg::write_with_zero) this register using [`remove::W`]. You can also [`modify`](crate::generic::Reg::modify) this register. See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@remove`]
+module"]
+#[doc(alias = "remove")]
+pub type Remove = crate::Reg<remove::RemoveSpec>;
+#[doc = "Remove the specific task."]
+pub mod remove;
+#[doc = "cause (r) register accessor: Record the cause of interrupt.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`cause::R`].  See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@cause`]
+module"]
+#[doc(alias = "cause")]
+pub type Cause = crate::Reg<cause::CauseSpec>;
+#[doc = "Record the cause of interrupt."]
+pub mod cause;
+#[doc = "dump (rw) register accessor: Dump the information on the specific position.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`dump::R`].  You can [`reset`](crate::generic::Reg::reset), [`write`](crate::generic::Reg::write), [`write_with_zero`](crate::generic::Reg::write_with_zero) this register using [`dump::W`]. You can also [`modify`](crate::generic::Reg::modify) this register. See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@dump`]
+module"]
+#[doc(alias = "dump")]
+pub type Dump = crate::Reg<dump::DumpSpec>;
+#[doc = "Dump the information on the specific position."]
+pub mod dump;
