@@ -7,7 +7,7 @@ use crate::{
     cap_queue::{CapQueue, DeviceCapTable},
     ready_queue::ReadyQueue,
 };
-use core::ptr::NonNull;
+use core::{fmt::Display, ptr::NonNull};
 
 /// The Identity of `Task`
 #[repr(transparent)]
@@ -66,7 +66,7 @@ pub struct TaskControlBlock {
 
 impl TaskControlBlock {
     /// 
-    pub fn new(priority: usize) -> TaskId {
+    pub fn new(priority: usize, is_preempt: bool) -> TaskId {
         let raw_device_table_ptr = Box::into_raw(Box::new(DeviceCapTable::EMPTY));
         let device_cap_table = NonNull::new(raw_device_table_ptr).unwrap();
         let tcb = Box::new(TaskControlBlock {
@@ -77,8 +77,19 @@ impl TaskControlBlock {
             status: Status::Inited,
             priority
         });
-        TaskId {
-            ptr: NonNull::new(Box::into_raw(tcb)).unwrap()
+        let mut raw_ptr = Box::into_raw(tcb) as usize;
+        raw_ptr |= priority << 1;
+        if is_preempt {
+            raw_ptr |= 1;
         }
+        TaskId {
+            ptr: NonNull::new(raw_ptr as *mut _).unwrap()
+        }
+    }
+}
+
+impl Display for TaskControlBlock {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "({:?})", self.ready_queue.inner.as_ptr())
     }
 }

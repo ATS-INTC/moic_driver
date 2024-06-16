@@ -29,6 +29,10 @@ impl Moic {
 
     /// Add a task
     pub fn add(&self, task_id: TaskId) {
+        let current_ptr = 0x1000080 as *mut usize;
+        let raw_current_ptr = unsafe { current_ptr.read_volatile() };
+        let current = unsafe { &mut *((raw_current_ptr & (!0x3f)) as *mut TaskControlBlock) };
+        current.ready_queue.inner.reserve(1);
         self.regs().add().write(|w| unsafe { w.bits(task_id.as_ptr() as _) });
     }
 
@@ -56,7 +60,7 @@ impl Moic {
 
     /// 
     pub fn switch_process(&self, process_id: Option<TaskId>) {
-        self.regs().switch_os().write(|w| unsafe { 
+        self.regs().switch_process().write(|w| unsafe { 
             w.bits(process_id.map_or(0, |inner| inner.as_ptr() as _)) 
         })
     }
