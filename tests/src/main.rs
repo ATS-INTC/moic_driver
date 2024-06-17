@@ -11,6 +11,8 @@ mod task;
 mod trap;
 mod user;
 
+extern crate alloc;
+
 #[boot::riscv_entry(boot_stack: 0x8000)]
 fn main(_hart_id: usize) {
     console::init();
@@ -18,7 +20,7 @@ fn main(_hart_id: usize) {
     trap::init();
     log::info!("hello");
     unsafe {
-        task::switch_test();
+        task::tests();
     }
     unreachable!();
 }

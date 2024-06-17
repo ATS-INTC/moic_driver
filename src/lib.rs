@@ -4,6 +4,7 @@
 #![no_std]
 #![deny(missing_docs)]
 
+pub use cap_queue::Capability;
 use task::TCB_ALIGN;
 pub use task::{TaskControlBlock, TaskId};
 extern crate alloc;
@@ -31,7 +32,7 @@ impl Moic {
     /// Add a task
     pub fn add(&self, task_id: TaskId) {
         let current = unsafe { &mut *((self.regs().current().read().tcb().bits() << TCB_ALIGN) as *mut TaskControlBlock) };
-        current.ready_queue.inner.reserve(1);
+        current.ready_queue.inner.push(TaskId::EMPTY);
         self.regs().add().write(|w| unsafe { w.bits(task_id.value() as _) });
     }
 
@@ -39,7 +40,7 @@ impl Moic {
     pub fn fetch(&self) -> Option<TaskId> {
         let raw_task_id = self.regs().fetch().read().bits();
         if raw_task_id != 0 {
-            Some(unsafe { TaskId::virt(raw_task_id as _) })
+            Some(TaskId(raw_task_id as _))
         } else {
             None
         }
@@ -66,6 +67,8 @@ impl Moic {
 
     /// 
     pub fn register_sender(&self, send_task_id: TaskId, recv_os_id: TaskId, recv_proc_id: TaskId, recv_task_id: TaskId) {
+        let current = unsafe { &mut *((self.regs().current().read().tcb().bits() << TCB_ALIGN) as *mut TaskControlBlock) };
+        current.send_cap_queue.inner.push(Capability::EMPTY);
         self.regs().register_send_task().write(|w| unsafe {
             w.bits(send_task_id.value() as _)
         });
@@ -82,6 +85,10 @@ impl Moic {
 
     /// 
     pub fn register_receiver(&self, recv_task_id: TaskId, send_os_id: TaskId, send_proc_id: TaskId, send_task_id: TaskId) {
+        if !(send_os_id == TaskId::EMPTY && send_proc_id == TaskId::EMPTY) {
+            let current = unsafe { &mut *((self.regs().current().read().tcb().bits() << TCB_ALIGN) as *mut TaskControlBlock) };
+            current.recv_cap_queue.inner.push(Capability::EMPTY);
+        }
         self.regs().register_recv_task().write(|w| unsafe {
             w.bits(recv_task_id.value() as _)
         });

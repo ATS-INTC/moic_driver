@@ -2,13 +2,17 @@ use alloc::vec::Vec;
 use crate::TaskId;
 pub const MAX_EXT_IRQ: usize = 0x100;
 
-// The Capability
+/// The Capability
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Capability {
+    /// 
     pub task_id: TaskId,
+    /// 
     pub target_os_id: TaskId,
+    /// 
     pub target_proc_id: TaskId,
+    /// 
     pub target_task_id: TaskId,
 }
 
@@ -20,6 +24,11 @@ impl Capability {
         target_proc_id: TaskId::EMPTY,
         target_task_id: TaskId::EMPTY,
     };
+
+    /// 
+    pub fn is_device_cap(&self) -> bool {
+        self.task_id != TaskId::EMPTY && self.target_os_id == TaskId::EMPTY && self.target_proc_id == TaskId::EMPTY
+    }
 }
 
 #[repr(C)]
@@ -29,6 +38,13 @@ pub struct DeviceCapTable(pub (crate)[Capability; MAX_EXT_IRQ]);
 impl DeviceCapTable {
     /// 
     pub const EMPTY: Self = Self([Capability::EMPTY; MAX_EXT_IRQ]);
+
+    /// 
+    pub fn iter(&self) -> Vec<TaskId> {
+        self.0.iter().filter(|c| c.is_device_cap()).map(|c| {
+            c.task_id
+        }).collect()
+    }
 }
 
 // The Capability Queue
