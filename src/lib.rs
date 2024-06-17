@@ -116,4 +116,11 @@ impl Moic {
         });
     }
 
+    /// 
+    pub fn remove_task(&self, task: TaskId) {
+        self.regs().remove().write(|w| unsafe {
+            w.bits(task.value() as _)
+        })
+    }
+
 }
