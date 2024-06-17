@@ -40,6 +40,8 @@ impl Moic {
     pub fn fetch(&self) -> Option<TaskId> {
         let raw_task_id = self.regs().fetch().read().bits();
         if raw_task_id != 0 {
+            let current = unsafe { &mut *((self.regs().current().read().tcb().bits() << TCB_ALIGN) as *mut TaskControlBlock) };
+            current.ready_queue.inner.pop();
             Some(TaskId(raw_task_id as _))
         } else {
             None
