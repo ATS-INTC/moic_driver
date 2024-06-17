@@ -1,18 +1,36 @@
+use alloc::vec::Vec;
 use moic_driver::*;
 
 static MOIC: Moic = Moic::new(0x1000000);
 
 pub fn tests() {
     unsafe {
-        switch_test();
+        create_drop_task_test();
+        switch_ready_queue_test();
         register_device_cap_test();
         register_send_cap_test();
         register_recv_cap_test();
+        remove_task_test();
     }
 }
 
 #[allow(unused)]
-unsafe fn switch_test() {
+fn create_drop_task_test() {
+    const TASK_NUM: usize = 0x21;
+    let mut task_vec = Vec::new();
+    for i in 0..TASK_NUM {
+        let taski = TaskControlBlock::new(i, false);
+        task_vec.push(taski);
+    }
+    for i in 0..TASK_NUM {
+        let taski = task_vec.pop().unwrap();
+        taski.manual_drop();
+    }
+    log::info!("create_drop_task_test passed!");
+}
+
+#[allow(unused)]
+unsafe fn switch_ready_queue_test() {
     use alloc::collections::BTreeSet;
     let mut os_task_set = BTreeSet::new();
     let os_tid = TaskControlBlock::new(9, false);
@@ -28,10 +46,11 @@ unsafe fn switch_test() {
         assert!(task.is_some());
         assert!(os_task_set.contains(task.as_ref().unwrap()));
         os_task_set.remove(task.as_ref().unwrap());
+        task.unwrap().manual_drop();
     }
     let mut proc_task_set = BTreeSet::new();
-    let proc_tcb = TaskControlBlock::new(1, false);
-    MOIC.switch_process(Some(proc_tcb));
+    let proc_tid = TaskControlBlock::new(1, false);
+    MOIC.switch_process(Some(proc_tid));
     for i in 0..2 {
         assert!(MOIC.fetch().is_none());
     }
@@ -46,20 +65,24 @@ unsafe fn switch_test() {
         assert!(task.is_some());
         assert!(os_task_set.contains(task.as_ref().unwrap()));
         os_task_set.remove(task.as_ref().unwrap());
+        task.unwrap().manual_drop();
     }
     assert!(os_task_set.is_empty());
     assert!(MOIC.fetch().is_none());
-    MOIC.switch_process(Some(proc_tcb));
+    MOIC.switch_process(Some(proc_tid));
     for i in 0..3 {
         let task = MOIC.fetch();
         assert!(task.is_some());
         assert!(proc_task_set.contains(task.as_ref().unwrap()));
         proc_task_set.remove(task.as_ref().unwrap());
+        task.unwrap().manual_drop();
     }
     assert!(proc_task_set.is_empty());
     assert!(MOIC.fetch().is_none());
-    log::info!("switch ready_queue test passed!");
     MOIC.switch_process(None);
+    os_tid.manual_drop();
+    proc_tid.manual_drop();
+    log::info!("switch ready_queue test passed!");
 }
 
 #[allow(unused)]
@@ -86,6 +109,8 @@ pub unsafe fn register_device_cap_test() {
     for i in 0..REGISTER_COUNT {
         assert!(proc_device_table[i] == TaskId::virt(0x1999 + i));
     }
+    os_tid.manual_drop();
+    proc_tid.manual_drop();
     log::info!("register device_cap test passed!");
 }
 
@@ -126,6 +151,9 @@ pub unsafe fn register_send_cap_test() {
             target_task_id: TaskId::virt(0x199 + i)
         });
     }
+    os_tid.manual_drop();
+    proc_tid.manual_drop();
+    proc2.manual_drop();
     log::info!("register send_cap test passed!");
 }
 
@@ -164,5 +192,31 @@ pub unsafe fn register_recv_cap_test() {
             target_task_id: TaskId::virt(0x199 + i)
         });
     }
+    os_tid.manual_drop();
+    proc_tid.manual_drop();
+    proc2.manual_drop();
     log::info!("register recv_cap test passed!");
+}
+
+
+#[allow(unused)]
+unsafe fn remove_task_test() {
+    use alloc::collections::BTreeSet;
+    let mut os_task_set = BTreeSet::new();
+    let os_tid = TaskControlBlock::new(9, false);
+    MOIC.switch_os(Some(os_tid));
+    const ADD_COUNT: usize = 0x1000;
+    for i in 0..ADD_COUNT {
+        let process_i = TaskControlBlock::new(i, false);
+        os_task_set.insert(process_i);
+        MOIC.add(process_i);
+    }
+    for tid in os_task_set.into_iter() {
+        MOIC.remove_task(tid);
+    }
+    assert!(MOIC.fetch().is_none());
+    let proc_tid = TaskControlBlock::new(0, false);
+    MOIC.switch_process(Some(proc_tid));
+    os_tid.manual_drop();
+    log::info!("remove task test passed!");
 }
