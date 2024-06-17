@@ -4,6 +4,7 @@
 #![no_std]
 #![deny(missing_docs)]
 
+use task::TCB_ALIGN;
 pub use task::{TaskControlBlock, TaskId};
 extern crate alloc;
 
@@ -29,17 +30,16 @@ impl Moic {
 
     /// Add a task
     pub fn add(&self, task_id: TaskId) {
-        let raw_current_ptr = self.regs().current().read().bits();
-        let current = unsafe { &mut *((raw_current_ptr & (!0x3f)) as *mut TaskControlBlock) };
+        let current = unsafe { &mut *((self.regs().current().read().tcb().bits() << TCB_ALIGN) as *mut TaskControlBlock) };
         current.ready_queue.inner.reserve(1);
-        self.regs().add().write(|w| unsafe { w.bits(task_id.as_ptr() as _) });
+        self.regs().add().write(|w| unsafe { w.bits(task_id.value() as _) });
     }
 
     /// 
     pub fn fetch(&self) -> Option<TaskId> {
         let raw_task_id = self.regs().fetch().read().bits();
         if raw_task_id != 0 {
-            Some(unsafe { TaskId::from_ptr(raw_task_id as *const TaskControlBlock) })
+            Some(unsafe { TaskId::virt(raw_task_id as _) })
         } else {
             None
         }
@@ -47,65 +47,65 @@ impl Moic {
 
     /// 
     pub fn switch_hypervisor(&self, hypervisor_id: TaskId) {
-        self.regs().switch_hypervisor().write(|w| unsafe { w.bits(hypervisor_id.as_ptr() as _) })
+        self.regs().switch_hypervisor().write(|w| unsafe { w.bits(hypervisor_id.value() as _) })
     }
 
     /// 
     pub fn switch_os(&self, os_id: Option<TaskId>) {
         self.regs().switch_os().write(|w| unsafe { 
-            w.bits(os_id.map_or(0, |inner| inner.as_ptr() as _)) 
+            w.bits(os_id.map_or(0, |inner| inner.value() as _)) 
         })
     }
 
     /// 
     pub fn switch_process(&self, process_id: Option<TaskId>) {
         self.regs().switch_process().write(|w| unsafe { 
-            w.bits(process_id.map_or(0, |inner| inner.as_ptr() as _)) 
+            w.bits(process_id.map_or(0, |inner| inner.value() as _)) 
         })
     }
 
     /// 
     pub fn register_sender(&self, send_task_id: TaskId, recv_os_id: TaskId, recv_proc_id: TaskId, recv_task_id: TaskId) {
         self.regs().register_send_task().write(|w| unsafe {
-            w.bits(send_task_id.as_ptr() as _)
+            w.bits(send_task_id.value() as _)
         });
         self.regs().register_send_target_os().write(|w| unsafe {
-            w.bits(recv_os_id.as_ptr() as _)
+            w.bits(recv_os_id.value() as _)
         });
         self.regs().register_send_target_proc().write(|w| unsafe {
-            w.bits(recv_proc_id.as_ptr() as _)
+            w.bits(recv_proc_id.value() as _)
         });
         self.regs().register_send_target_task().write(|w| unsafe {
-            w.bits(recv_task_id.as_ptr() as _)
+            w.bits(recv_task_id.value() as _)
         });
     }
 
     /// 
     pub fn register_receiver(&self, recv_task_id: TaskId, send_os_id: TaskId, send_proc_id: TaskId, send_task_id: TaskId) {
         self.regs().register_recv_task().write(|w| unsafe {
-            w.bits(recv_task_id.as_ptr() as _)
+            w.bits(recv_task_id.value() as _)
         });
         self.regs().register_recv_target_os().write(|w| unsafe {
-            w.bits(send_os_id.as_ptr() as _)
+            w.bits(send_os_id.value() as _)
         });
         self.regs().register_recv_target_proc().write(|w| unsafe {
-            w.bits(send_proc_id.as_ptr() as _)
+            w.bits(send_proc_id.value() as _)
         });
         self.regs().register_recv_target_task().write(|w| unsafe {
-            w.bits(send_task_id.as_ptr() as _)
+            w.bits(send_task_id.value() as _)
         });
     }
 
     /// 
     pub fn send_intr(&self, recv_os_id: TaskId, recv_proc_id: TaskId, recv_task_id: TaskId) {
         self.regs().send_intr_os().write(|w| unsafe {
-            w.bits(recv_os_id.as_ptr() as _)
+            w.bits(recv_os_id.value() as _)
         });
         self.regs().send_intr_proc().write(|w| unsafe {
-            w.bits(recv_proc_id.as_ptr() as _)
+            w.bits(recv_proc_id.value() as _)
         });
         self.regs().send_intr_task().write(|w| unsafe {
-            w.bits(recv_task_id.as_ptr() as _)
+            w.bits(recv_task_id.value() as _)
         });
     }
 

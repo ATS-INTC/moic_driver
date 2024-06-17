@@ -8,35 +8,56 @@ use crate::{
     ready_queue::ReadyQueue,
 };
 use core::{fmt::Display, ptr::NonNull};
+pub(crate) const TCB_ALIGN: usize = 6;
 
 /// The Identity of `Task`
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct TaskId {
-    ptr: NonNull<TaskControlBlock>,
-}
+pub struct TaskId(usize);
 
 unsafe impl Send for TaskId {}
 unsafe impl Sync for TaskId {}
 
 impl TaskId {
     /// 
-    pub const fn virt(val: usize) -> Self {
-        Self {
-            ptr: unsafe { NonNull::new_unchecked(val as *mut _) }
+    pub const EMPTY: Self = Self(0);
+    
+    /// Assume that val is a valid pointer of `TaskControlBlock`.
+    pub(crate) unsafe fn virt(val: usize) -> Self {
+        let raw_tcb_ptr = val as *const TaskControlBlock;
+        let priority = (&*raw_tcb_ptr).priority;
+        let is_preempt = (&*raw_tcb_ptr).is_preempt;
+        let mut tid = val;
+        tid |= priority << 1;
+        if is_preempt {
+            tid |= 1;
         }
+        Self(tid)
     }
 
-    /// The raw pointer
-    pub fn as_ptr(&self) -> *const TaskControlBlock {
-        self.ptr.as_ptr()
+    /// 
+    pub(crate) fn value(&self) -> usize {
+        self.0
     }
+}
 
-    // build the `TaskId` from raw pointer
-    pub(crate) unsafe fn from_ptr(ptr: *const TaskControlBlock) -> Self {
-        Self {
-            ptr: NonNull::new(ptr as *mut TaskControlBlock).unwrap(),
+impl From<Box<TaskControlBlock>> for TaskId {
+    fn from(value: Box<TaskControlBlock>) -> Self {
+        let priority = value.priority;
+        let is_preempt = value.is_preempt;
+        let mut raw_tcb_ptr = Box::into_raw(value) as usize;
+        raw_tcb_ptr |= priority << 1;
+        if is_preempt {
+            raw_tcb_ptr |= 1;
         }
+        Self(raw_tcb_ptr)
+    }
+}
+
+impl Display for TaskId {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let raw_tcb: *const TaskControlBlock = self.into();
+        write!(f, "{}", unsafe {&*raw_tcb})
     }
 }
 
@@ -62,6 +83,8 @@ pub struct TaskControlBlock {
     pub status: Status,
     /// 
     pub priority: usize,
+    /// 
+    pub is_preempt: bool,
 }
 
 impl TaskControlBlock {
@@ -75,21 +98,35 @@ impl TaskControlBlock {
             send_cap_queue: CapQueue::EMPTY,
             recv_cap_queue: CapQueue::EMPTY,
             status: Status::Inited,
-            priority
+            priority,
+            is_preempt
         });
-        let mut raw_ptr = Box::into_raw(tcb) as usize;
-        raw_ptr |= priority << 1;
-        if is_preempt {
-            raw_ptr |= 1;
-        }
-        TaskId {
-            ptr: NonNull::new(raw_ptr as *mut _).unwrap()
-        }
+        TaskId::from(tcb)
+    }
+}
+
+impl From<&TaskId> for *const TaskControlBlock {
+    fn from(value: &TaskId) -> Self {
+        let tid = value.0;
+        let raw_tcb_ptr = tid & (!0x3f);
+        raw_tcb_ptr as _
     }
 }
 
 impl Display for TaskControlBlock {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "({:?})", self.ready_queue.inner.as_ptr())
+        write!(f, "TaskControlBlock(
+ReadyQueue: {:X?},
+SendCap: {:X?},
+RecvCap: {:X?},
+Status: {:?},
+Priority: {},
+)", 
+            self.ready_queue, 
+            self.send_cap_queue,
+            self.recv_cap_queue,
+            self.status,
+            self.priority
+        )
     }
 }
