@@ -48,6 +48,13 @@
             <description>Fetch a task from the priority queue.</description>
             <addressOffset>0x08</addressOffset>
             <access>read-only</access>
+            <fields>
+              <field>
+                <name>tcb</name>
+                <description>The pointer of task control block.</description>
+                <bitRange>[64:6]</bitRange>
+              </field>
+            </fields>
             <dataType>uint64_t</dataType>
           </register>
 
@@ -168,6 +175,13 @@
             <description>Get the current task.</description>
             <addressOffset>0x80</addressOffset>
             <access>read-only</access>
+            <fields>
+              <field>
+                <name>tcb</name>
+                <description>The pointer of task control block.</description>
+                <bitRange>[64:6]</bitRange>
+              </field>
+            </fields>
             <dataType>uint64_t</dataType>
           </register>
 
