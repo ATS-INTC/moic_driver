@@ -14,6 +14,7 @@ pub fn tests() {
     }
 }
 
+/// This test is used to verify the function of creating and dropping task without using `MOIC`.
 #[allow(unused)]
 fn create_drop_task_test() {
     const TASK_NUM: usize = 0x21;
@@ -29,6 +30,11 @@ fn create_drop_task_test() {
     log::info!("create_drop_task_test passed!");
 }
 
+/// This test is used to verify that when switching tasks, the content of ReadyQueue is correct.
+/// Firstly, it creates the `TCB` of os and switch to the os.
+/// Then, it creates many processes in this os and hands them over to the `MOIC` hardware.
+/// It fetchs some process and switch into a new process, and create some normal tasks in the process.
+/// Then it switch to the os and fetch all the processes.
 #[allow(unused)]
 unsafe fn switch_ready_queue_test() {
     use alloc::collections::BTreeSet;
@@ -85,6 +91,7 @@ unsafe fn switch_ready_queue_test() {
     log::info!("switch ready_queue test passed!");
 }
 
+/// This test is used to verify that when switching tasks, the content of DeviceCapability is correct.
 #[allow(unused)]
 pub unsafe fn register_device_cap_test() {
     let os_tid = TaskControlBlock::new(9, false);
@@ -114,7 +121,7 @@ pub unsafe fn register_device_cap_test() {
     log::info!("register device_cap test passed!");
 }
 
-
+/// This test is used to verify that when switching tasks, the content of SendCapabilityTable is correct.
 #[allow(unused)]
 pub unsafe fn register_send_cap_test() {
     let os_tid = TaskControlBlock::new(9, false);
@@ -157,6 +164,7 @@ pub unsafe fn register_send_cap_test() {
     log::info!("register send_cap test passed!");
 }
 
+/// This test is used to verify that when switching tasks, the content of ReceiveCapabilityTable is correct.
 #[allow(unused)]
 pub unsafe fn register_recv_cap_test() {
     let os_tid = TaskControlBlock::new(9, false);
@@ -198,7 +206,7 @@ pub unsafe fn register_recv_cap_test() {
     log::info!("register recv_cap test passed!");
 }
 
-
+/// This test is used to verify the correctness of remove a task no matter which type the task is.
 #[allow(unused)]
 unsafe fn remove_task_test() {
     use alloc::collections::BTreeSet;

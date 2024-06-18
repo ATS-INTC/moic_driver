@@ -1,12 +1,27 @@
 use crate::trap::TrapContext;
 use riscv::register::{
     mtvec::TrapMode,
-    sscratch,
+    sscratch, sideleg,
     sstatus::{self, Sstatus},
     uie, uip, ustatus, utvec,
 };
 static USER_STACK: [u8; 0x1000] = [0u8; 0x1000];
 static KERNEL_STACK: [u8; 0x1000] = [0u8; 0x1000];
+
+/// This test is used to verify the user interrupt mechanism.
+/// Firstly, it will enable the user privilige handle the user interrupt by `sideleg::set_usoft()`;
+/// Then, it enable the usersoft bit of `uie` and `uip`.
+/// It will not triggle when cpu is in the supervisor privilige.
+/// When the cpu switch into the user privilige when `sret`, it will triggle the user interrupt immediately.
+#[allow(unused)]
+pub unsafe fn user_interrupt_test() {
+    sideleg::set_usoft();
+    ustatus::set_uie();
+    uie::set_usoft();
+    uip::set_usoft();
+    let ctx = user_ctx();
+    trap_return(&ctx);
+}
 
 pub fn user_ctx() -> TrapContext {
     let mut sstatus = sstatus::read();
