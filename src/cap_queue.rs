@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use crate::TaskId;
-pub const MAX_EXT_IRQ: usize = 0x100;
+pub const MAX_EXT_IRQ: usize = 0x10;
 
 /// The Capability
 #[repr(C)]
@@ -53,12 +53,14 @@ impl DeviceCapTable {
 pub struct CapQueue {
     pub inner: Vec<Capability>,
     pub online: bool,
+    pub count: usize,
 }
 
 impl CapQueue {
     /// 
     pub const EMPTY: Self = Self {
         inner: Vec::new(),
-        online: false
+        online: false,
+        count: 0
     };
 }

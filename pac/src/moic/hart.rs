@@ -20,7 +20,7 @@ pub struct Hart {
     switch_hypervisor: SwitchHypervisor,
     current: Current,
     remove: Remove,
-    cause: Cause,
+    status: Status,
     dump: Dump,
 }
 impl Hart {
@@ -114,10 +114,10 @@ impl Hart {
     pub const fn remove(&self) -> &Remove {
         &self.remove
     }
-    #[doc = "0x90..0x98 - Record the cause of interrupt."]
+    #[doc = "0x90..0x98 - The status register."]
     #[inline(always)]
-    pub const fn cause(&self) -> &Cause {
-        &self.cause
+    pub const fn status(&self) -> &Status {
+        &self.status
     }
     #[doc = "0x98..0xa0 - Dump the information on the specific position."]
     #[inline(always)]
@@ -233,12 +233,12 @@ module"]
 pub type Remove = crate::Reg<remove::RemoveSpec>;
 #[doc = "Remove the specific task."]
 pub mod remove;
-#[doc = "cause (r) register accessor: Record the cause of interrupt.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`cause::R`].  See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@cause`]
+#[doc = "status (r) register accessor: The status register.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`status::R`].  See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@status`]
 module"]
-#[doc(alias = "cause")]
-pub type Cause = crate::Reg<cause::CauseSpec>;
-#[doc = "Record the cause of interrupt."]
-pub mod cause;
+#[doc(alias = "status")]
+pub type Status = crate::Reg<status::StatusSpec>;
+#[doc = "The status register."]
+pub mod status;
 #[doc = "dump (rw) register accessor: Dump the information on the specific position.\n\nYou can [`read`](crate::generic::Reg::read) this register and get [`dump::R`].  You can [`reset`](crate::generic::Reg::reset), [`write`](crate::generic::Reg::write), [`write_with_zero`](crate::generic::Reg::write_with_zero) this register using [`dump::W`]. You can also [`modify`](crate::generic::Reg::modify) this register. See [API](https://docs.rs/svd2rust/#read--modify--write-api).\n\nFor information about available fields see [`mod@dump`]
 module"]
 #[doc(alias = "dump")]

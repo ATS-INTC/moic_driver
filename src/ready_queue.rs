@@ -7,6 +7,7 @@ use crate::task::TaskId;
 pub struct ReadyQueue {
     pub inner: Vec<TaskId>,
     pub online: bool,
+    pub count: usize,
 }
 
 
@@ -14,6 +15,7 @@ impl ReadyQueue {
     /// 
     pub const EMPTY: Self = Self {
         inner: Vec::new(),
-        online: false
+        online: false,
+        count: 0
     };
 }

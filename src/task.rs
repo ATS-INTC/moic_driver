@@ -2,13 +2,14 @@
 //!
 
 use alloc::{boxed::Box, vec::Vec};
-
+use core::sync::atomic::AtomicUsize;
 use crate::{
     cap_queue::{CapQueue, Capability, DeviceCapTable},
     ready_queue::ReadyQueue,
 };
 use core::{fmt::Display, ptr::NonNull};
-pub(crate) const TCB_ALIGN: usize = 6;
+use spin::Mutex;
+pub(crate) const TASK_META_ALIGN: usize = 6;
 pub(crate) const MAX_PRIORITY: usize = 32;
 
 /// The Identity of `Task`
@@ -36,29 +37,29 @@ impl TaskId {
     /// 
     pub fn manual_drop(self) {
         let raw_tid = self.0;
-        let raw_tcb = (raw_tid & (!0x3f)) as *mut TaskControlBlock;
-        let boxed_tcb = unsafe { Box::from_raw(raw_tcb) };
-        drop(boxed_tcb);
+        let raw_meta = (raw_tid & (!0x3f)) as *mut TaskMeta;
+        let boxed_meta = unsafe { Box::from_raw(raw_meta) };
+        drop(boxed_meta);
     }
 }
 
-impl From<Box<TaskControlBlock>> for TaskId {
-    fn from(value: Box<TaskControlBlock>) -> Self {
+impl From<Box<TaskMeta>> for TaskId {
+    fn from(value: Box<TaskMeta>) -> Self {
         let priority = value.priority;
         let is_preempt = value.is_preempt;
-        let mut raw_tcb_ptr = Box::into_raw(value) as usize;
-        raw_tcb_ptr |= (priority % MAX_PRIORITY) << 1;
+        let mut raw_meta_ptr = Box::into_raw(value) as usize;
+        raw_meta_ptr |= (priority % MAX_PRIORITY) << 1;
         if is_preempt {
-            raw_tcb_ptr |= 1;
+            raw_meta_ptr |= 1;
         }
-        Self(raw_tcb_ptr)
+        Self(raw_meta_ptr)
     }
 }
 
 impl Display for TaskId {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let raw_tcb: *const TaskControlBlock = self.into();
-        write!(f, "{}", unsafe {&*raw_tcb})
+        let raw_meta: *const TaskMeta = self.into();
+        write!(f, "{}", unsafe {&*raw_meta})
     }
 }
 
@@ -69,9 +70,9 @@ pub enum Status {
     Ready = 1,
 }
 
-/// The `TaskControlBlock`
+/// The `TaskMeta`
 #[repr(C)]
-pub struct TaskControlBlock {
+pub struct TaskMeta {
     /// 
     pub ready_queue: ReadyQueue,
     /// 
@@ -86,23 +87,26 @@ pub struct TaskControlBlock {
     pub priority: usize,
     /// 
     pub is_preempt: bool,
+    /// 
+    pub lock: Mutex<()>,
 }
 
-impl TaskControlBlock {
+impl TaskMeta {
     /// 
     pub fn new(priority: usize, is_preempt: bool) -> TaskId {
         let raw_device_table_ptr = Box::into_raw(Box::new(DeviceCapTable::EMPTY));
         let device_cap_table = NonNull::new(raw_device_table_ptr).unwrap();
-        let tcb = Box::new(TaskControlBlock {
+        let task_meta = Box::new(TaskMeta {
             ready_queue: ReadyQueue::EMPTY,
             device_cap_table,
             send_cap_queue: CapQueue::EMPTY,
             recv_cap_queue: CapQueue::EMPTY,
             status: Status::Inited,
             priority,
-            is_preempt
+            is_preempt,
+            lock: Mutex::new(()),
         });
-        TaskId::from(tcb)
+        TaskId::from(task_meta)
     }
 
     /// 
@@ -121,23 +125,23 @@ impl TaskControlBlock {
     }
 }
 
-impl From<&TaskId> for *const TaskControlBlock {
+impl From<&TaskId> for *const TaskMeta {
     fn from(value: &TaskId) -> Self {
         let tid = value.0;
-        let raw_tcb_ptr = tid & (!0x3f);
-        raw_tcb_ptr as _
+        let raw_meta_ptr = tid & (!0x3f);
+        raw_meta_ptr as _
     }
 }
 
-impl From<TaskId> for &mut TaskControlBlock {
+impl From<TaskId> for &mut TaskMeta {
     fn from(value: TaskId) -> Self {
         let tid = value.0;
-        let raw_tcb_ptr = tid & (!0x3f);
-        unsafe { &mut *(raw_tcb_ptr as *mut TaskControlBlock) }
+        let raw_meta_ptr = tid & (!0x3f);
+        unsafe { &mut *(raw_meta_ptr as *mut TaskMeta) }
     }
 }
 
-impl Drop for TaskControlBlock {
+impl Drop for TaskMeta {
     fn drop(&mut self) {
         let raw_device_cap_table = self.device_cap_table.as_ptr();
         let boxed_device_cap_table = unsafe { Box::from_raw(raw_device_cap_table) };
@@ -145,9 +149,9 @@ impl Drop for TaskControlBlock {
     }
 }
 
-impl Display for TaskControlBlock {
+impl Display for TaskMeta {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "TaskControlBlock(
+        write!(f, "TaskMeta(
 {:X?},
 SendCap: {:X?},
 RecvCap: {:X?},

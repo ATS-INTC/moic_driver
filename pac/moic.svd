@@ -194,10 +194,22 @@
           </register>
 
           <register>
-            <name>cause</name>
-            <description>Record the cause of interrupt.</description>
+            <name>status</name>
+            <description>The status register.</description>
             <addressOffset>0x90</addressOffset>
             <access>read-only</access>
+            <fields>
+              <field>
+                <name>cause</name>
+                <description>The cause of interrupt.</description>
+                <bitRange>[3:0]</bitRange>
+              </field>
+              <field>
+                <name>ocnt</name>
+                <description>The online hart of the current os/process.</description>
+                <bitRange>[64:4]</bitRange>
+              </field>
+            </fields>
             <dataType>uint64_t</dataType>
           </register>
 
