@@ -2,12 +2,11 @@
 //!
 
 use alloc::{boxed::Box, vec::Vec};
-use core::sync::atomic::AtomicUsize;
 use crate::{
     cap_queue::{CapQueue, Capability, DeviceCapTable},
     ready_queue::ReadyQueue,
 };
-use core::{fmt::Display, ptr::NonNull};
+use core::fmt::Display;
 use spin::Mutex;
 pub(crate) const TASK_META_ALIGN: usize = 6;
 pub(crate) const MAX_PRIORITY: usize = 32;
@@ -30,7 +29,7 @@ impl TaskId {
     }
 
     /// 
-    pub(crate) fn value(&self) -> usize {
+    pub fn value(&self) -> usize {
         self.0
     }
 
@@ -76,7 +75,7 @@ pub struct TaskMeta {
     /// 
     pub ready_queue: ReadyQueue,
     /// 
-    pub device_cap_table: NonNull<DeviceCapTable>,
+    pub device_cap_table: DeviceCapTable,
     /// 
     pub send_cap_queue: CapQueue,
     /// 
@@ -94,12 +93,10 @@ pub struct TaskMeta {
 impl TaskMeta {
 
     ///
-    pub fn init() -> Self {
-        let raw_device_table_ptr = Box::into_raw(Box::new(DeviceCapTable::EMPTY));
-        let device_cap_table = NonNull::new(raw_device_table_ptr).unwrap();
+    pub const fn init() -> Self {
         Self {
             ready_queue: ReadyQueue::EMPTY,
-            device_cap_table,
+            device_cap_table: DeviceCapTable::EMPTY,
             send_cap_queue: CapQueue::EMPTY,
             recv_cap_queue: CapQueue::EMPTY,
             status: Status::Inited,
@@ -111,11 +108,9 @@ impl TaskMeta {
 
     /// 
     pub fn new(priority: usize, is_preempt: bool) -> TaskId {
-        let raw_device_table_ptr = Box::into_raw(Box::new(DeviceCapTable::EMPTY));
-        let device_cap_table = NonNull::new(raw_device_table_ptr).unwrap();
         let task_meta = Box::new(TaskMeta {
             ready_queue: ReadyQueue::EMPTY,
-            device_cap_table,
+            device_cap_table: DeviceCapTable::EMPTY,
             send_cap_queue: CapQueue::EMPTY,
             recv_cap_queue: CapQueue::EMPTY,
             status: Status::Inited,
@@ -128,7 +123,7 @@ impl TaskMeta {
 
     /// 
     pub fn device_cap(&self) -> &DeviceCapTable {
-        unsafe { self.device_cap_table.as_ref() }
+        &self.device_cap_table
     }
 
     /// 
@@ -160,9 +155,6 @@ impl From<TaskId> for &mut TaskMeta {
 
 impl Drop for TaskMeta {
     fn drop(&mut self) {
-        let raw_device_cap_table = self.device_cap_table.as_ptr();
-        let boxed_device_cap_table = unsafe { Box::from_raw(raw_device_cap_table) };
-        drop(boxed_device_cap_table);
     }
 }
 
