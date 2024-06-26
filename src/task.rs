@@ -92,6 +92,23 @@ pub struct TaskMeta {
 }
 
 impl TaskMeta {
+
+    ///
+    pub fn init() -> Self {
+        let raw_device_table_ptr = Box::into_raw(Box::new(DeviceCapTable::EMPTY));
+        let device_cap_table = NonNull::new(raw_device_table_ptr).unwrap();
+        Self {
+            ready_queue: ReadyQueue::EMPTY,
+            device_cap_table,
+            send_cap_queue: CapQueue::EMPTY,
+            recv_cap_queue: CapQueue::EMPTY,
+            status: Status::Inited,
+            priority: 0,
+            is_preempt: false,
+            lock: Mutex::new(()),
+        }
+    }
+
     /// 
     pub fn new(priority: usize, is_preempt: bool) -> TaskId {
         let raw_device_table_ptr = Box::into_raw(Box::new(DeviceCapTable::EMPTY));
