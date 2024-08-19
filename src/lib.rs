@@ -40,12 +40,12 @@ impl Moic {
     /// 
     pub fn fetch(&self) -> Result<TaskId, MoicErr> {
         let raw_task_id = self.regs().fetch().read().bits() as i64;
-        if raw_task_id > 0 {
-            Ok(TaskId(raw_task_id as _))
-        } else if raw_task_id == 0 {
+        if raw_task_id == 0 {
             Err(MoicErr::NoTask)
-        } else {
+        } else if raw_task_id == -1 {
             Err(MoicErr::FetchErr)
+        } else {
+            Ok(TaskId(raw_task_id as _))
         }
     }
 

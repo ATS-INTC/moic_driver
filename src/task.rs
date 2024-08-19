@@ -70,7 +70,7 @@ pub enum Status {
 }
 
 /// The `TaskMeta`
-#[repr(C)]
+#[repr(C, align(0x40))]
 pub struct TaskMeta {
     /// 
     pub ready_queue: ReadyQueue,
@@ -88,7 +88,12 @@ pub struct TaskMeta {
     pub is_preempt: bool,
     /// 
     pub lock: Mutex<()>,
+    ///
+    pub inner: usize,
 }
+
+unsafe impl Send for TaskMeta {}
+unsafe impl Sync for TaskMeta {}
 
 impl TaskMeta {
 
@@ -103,6 +108,7 @@ impl TaskMeta {
             priority: 0,
             is_preempt: false,
             lock: Mutex::new(()),
+            inner: 0,
         }
     }
 
@@ -117,6 +123,7 @@ impl TaskMeta {
             priority,
             is_preempt,
             lock: Mutex::new(()),
+            inner: 0,
         });
         TaskId::from(task_meta)
     }
